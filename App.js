@@ -12,35 +12,95 @@ import {
 } from 'react-native';
 
 import {
-  Header,
-  LearnMoreLinks,
   Colors,
-  DebugInstructions,
-  ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
 import {NavigationContainer, DefaultTheme, DarkTheme} from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 
-import {createStackNavigator} from '@react-navigation/stack';
-
+import FlashMessage from "react-native-flash-message";
 import HomeComponent from './components/HomeComponent';
 import TrackPlayer from 'react-native-track-player';
 import PlaylistScreen from './screens/PlaylistScreen';
 import PlayerComponent from './components/PlayerComponent';
 import DownloaderComponent from './components/DownloaderComponent'
 import {getBackgroundColor} from 'react-native/Libraries/LogBox/UI/LogBoxStyle';
+import WebviewDownloaderComponent from './components/WebviewDownloaderComponent';
+import HomeTabBarIcon from './components/HomeTabBarIcon';
+import PlaylistTabBarIcon from './components/PlaylistTabBarIcon';
+import DownloadTabBarIcon from './components/DownloadTabBarIcon';
+
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function Tabs(props) {
+  // console.log("any props below");
+  // console.log(props);
+
+  const [url, setUrl] = React.useState("")
 
 
+  if(props) {
+    try {
+      setUrl(
+          props.route.params.url !== undefined ? props.route.params.url : null
+      )
+      props.navigation.jumpTo("Download", {url: url})
+    }
+    catch (e) {
 
-// TrackPlayer.setupPlayer().then(async () => {
-//   await TrackPlayer.add({
-//     id: 'trackId',
-//     url: require('./audio.mp3'),
-//     title: 'Track Title',
-//     artist: 'Track Artist',
-//     artwork: require('./track.png'),
-//   });
-// });
+    }
+  }
+
+  if(!url) {
+    return (
+        <Tab.Navigator
+            initialRouteName={'Home'}
+            tabBarOptions={
+              {
+                activeBackgroundColor: '#C0DDF9',
+
+                labelStyle: {fontSize: 14, marginBottom: 4},
+
+                tabStyle: {flex:1, borderColor: "#20232a", borderWidth: 0, borderBottomColor: "transparent", backgroundColor: "transparent", borderBottomWidth: 0},
+
+                style: {backgroundColor: "#transparent"},
+
+                // allowFontScaling: false
+              }
+            }
+
+
+        >
+          <Tab.Screen name="Download"
+                      component={DownloaderComponent}
+                      {...props}
+
+                      options={
+                        {tabBarIcon:  (props) => <DownloadTabBarIcon {...props}/>}
+                      }
+          />
+
+          <Tab.Screen name="Home"
+                      component={HomeComponent}
+                      options={
+                        {tabBarIcon:  (props) => <HomeTabBarIcon {...props}/>}
+                      }
+          />
+
+          <Tab.Screen name="Player" component={PlayerComponent}
+                      options={
+                        {tabBarIcon:  (props) => <PlaylistTabBarIcon {...props}/>}
+                      }
+          />
+
+
+          {/*<Tab.Screen name="Web Download" component={WebviewDownloaderComponent}/>*/}
+        </Tab.Navigator>
+    );
+  }
+}
 
 export default class App extends React.Component {
 
@@ -52,32 +112,46 @@ export default class App extends React.Component {
 
 
   render() {
+
     return (
-        <NavigationContainer theme={MyTheme}>
+
+        <NavigationContainer>
+
           <Stack.Navigator>
-            <Stack.Screen name="Home" component={HomeComponent} />
-            <Stack.Screen name="Player" component={PlayerComponent} />
-            <Stack.Screen name="Download" component={DownloaderComponent} cardSt/>
+
+            <Stack.Screen
+                name="V2V"
+                component={Tabs}
+            />
+
+            <Stack.Screen
+                name="Web Download"
+                component={WebviewDownloaderComponent}
+                options={{ title: 'Download' }}
+            />
+
+
 
           </Stack.Navigator>
+
+
         </NavigationContainer>
+
     );
   }
 }
 
-const Stack = createStackNavigator();
 
-
-const MyTheme = {
-  dark: false,
-  colors: {
-    primary: 'rgb(255, 45, 85)',
-    background: 'rgb(77, 52, 102)',
-    card: 'rgb(255, 255, 255)',
-    text: 'rgb(28, 28, 30)',
-    border: 'rgb(199, 199, 204)',
-  },
-};
+// const MyTheme = {
+//   dark: false,
+//   colors: {
+//     primary: 'rgb(255, 45, 85)',
+//     background: 'rgb(77, 52, 102)',
+//     card: 'rgb(255, 255, 255)',
+//     text: 'rgb(28, 28, 30)',
+//     border: 'rgb(199, 199, 204)',
+//   },
+// };
 
 const styles = StyleSheet.create({
 
@@ -85,6 +159,13 @@ const styles = StyleSheet.create({
   scrollView: {
     backgroundColor: Colors.lighter,
   },
+
+  header: {
+
+
+
+  },
+
   engine: {
     position: 'absolute',
     right: 0,

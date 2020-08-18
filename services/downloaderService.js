@@ -3,33 +3,35 @@ import {VALIDATE_ENDPOINT, DOWNLOAD_ENDPOINT, API_URL} from '../common/constants
 import {queryString} from '../common/utils';
 import ios from 'rn-fetch-blob/ios';
 
-// let path = RNFetchBlob.fs.dirs.DocumentDir
 
-const iosRN = RNFetchBlob.ios
-const iosFP = RNFetchBlob.fs.dirs.DocumentDir
-const libraryDir = `${iosFP}/MediaLibrary`
+// const iosRN = RNFetchBlob.ios
+const MEDIA_DIR = `/MediaLibrary`
 
 
-const getPath = () => console.log(iosFP);
+// Document directory path changes after each access
+// so we must fetch instead of a static reference
+const getDocumentDir = () => RNFetchBlob.fs.dirs.DocumentDir;
 
 
 const createLibraryFolder = () => {
-    RNFetchBlob.fs.mkdir(libraryDir)
-                    .then(() => console.log(`Library directory created @ ${libraryDir}!`))
-                    .catch(() => console.log(`Library directory already exists! @ ${libraryDir}!`))
+    RNFetchBlob.fs.mkdir(`${getDocumentDir()}${MEDIA_DIR}`)
+                    .then(() => console.log(`Library directory created`))
+                    .catch(() => console.log(`Library directory already exists!!`))
 }
 
-const moveFileToLibrary = async (fromPath) => {
-    var filename = fromPath.split('/').pop();
-
-    await RNFetchBlob.fs.mv(fromPath, `${libraryDir}/${filename}`)
-
-
-    console.log("Track moved to Library! @ " + `${libraryDir}/${filename}`)
-
-    return `${libraryDir}/${filename}`;
-
-}
+// const moveFileToLibrary = async (fromPath) => {
+//
+//
+//     var filename = fromPath.split('/').pop();
+//
+//     await RNFetchBlob.fs.mv(fromPath, `${libraryDir}/${filename}`)
+//
+//
+//     console.log("Track moved to Library! @ " + `${libraryDir}/${filename}`)
+//
+//     return `${getDocumentDir()}${MEDIA_DIR}`;
+//
+// }
 
 const getInfo = async (url, onFail) => {
 
@@ -40,34 +42,39 @@ const getInfo = async (url, onFail) => {
 
 }
 
+const download = async (url, filename, onFail, downloadProgressCallBack) => {
 
+    filename = filename.replace(/\//g, "-")
 
-const download = async (url, filename, onFail) => {
+    console.log("file" + filename)
+    let filenameNoWhitespace = filename.replace(/\s/g, "") + ".mp3"
 
+    let filepath = `${getDocumentDir()}${MEDIA_DIR}/${filenameNoWhitespace}`;
     try {
 
-        let dlpath = await RNFetchBlob
+        await RNFetchBlob
             .config({
-                fileCache: true,
-                appendExt: 'mp3',
-                // path: `${iosFP}/${filename}.mp3`
+                // fileCache: true,
+                // appendExt: 'mp3',
+                path: filepath
             })
             .fetch('GET',
                 `${API_URL}${DOWNLOAD_ENDPOINT}${queryString('url', url)}`,
 
                 {
                     //some headers ..
-                })
+                }).progress({ interval : 50 }, (received, total) => {
+                    if(downloadProgressCallBack != null) {
+                        downloadProgressCallBack(received, total)
+                    }
+            })
+                    //     .then( (res) =>
 
-        // let libraryPath = await moveFileToLibrary(dlpath.path())
-        //
-        // console.log("path is " + libraryPath);
-        //
-        // return libraryPath;
+        filepath = `${getDocumentDir()}${MEDIA_DIR}/${filenameNoWhitespace}`
+        return filepath;
 
 
-
-        return dlpath.path();
+        // return filepath;
     }
 
 
@@ -78,12 +85,30 @@ const download = async (url, filename, onFail) => {
     }
 }
 
-getPath()
+const getTracksFromLibrary = async () => {
+    let tracks = [];
+    let trackFilenames = await RNFetchBlob.fs.ls(`${getDocumentDir()}${MEDIA_DIR}`)
+    // files will an array contains filenames
+
+    trackFilenames.forEach(trackFilename => {
+        if(!trackFilename.startsWith(".")) {
+            tracks.push({
+                id: trackFilename,
+                name: trackFilename,
+                path: `${getDocumentDir()}${MEDIA_DIR}/${trackFilename}`
+            })
+        }
+
+    })
+    return tracks
+}
+
 
 export default {
     download,
     getInfo,
-    getPath,
     createLibraryFolder,
-    moveFileToLibrary
+    getTracksFromLibrary,
+    // getDownloadProgress
+    // moveFileToLibrary
 }

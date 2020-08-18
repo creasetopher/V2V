@@ -49,9 +49,10 @@ export default function Player(props) {
     const [trackTitle, setTrackTitle] = useState("");
     const [trackArtwork, setTrackArtwork] = useState();
     const [trackArtist, setTrackArtist] = useState("");
+    const [middleButtonText, setMiddleButtonText] = useState("►")
 
 
-    useTrackPlayerEvents(["playback-track-changed"], async event => {
+    useTrackPlayerEvents(["playback-track-changed", "playback-state"], async event => {
 
         if (event.type === TrackPlayer.TrackPlayerEvents.PLAYBACK_TRACK_CHANGED) {
             const track = await TrackPlayer.getTrack(event.nextTrack);
@@ -60,18 +61,36 @@ export default function Player(props) {
             setTrackArtist(artist);
             setTrackArtwork(artwork);
         }
+
+
+        if (event.type === TrackPlayer.TrackPlayerEvents.PLAYBACK_STATE) {
+
+            console.log("in the event");
+            let currentPlayback = playbackState
+            if (
+                event.state === TrackPlayer.STATE_PLAYING ||
+                event.state === TrackPlayer.STATE_BUFFERING
+            ) {
+                console.log("in the event1" + event.state + " " + currentPlayback);
+
+                setMiddleButtonText("||");
+            }
+
+            else if (
+                event.state === TrackPlayer.STATE_PAUSED ||
+                event.state === TrackPlayer.STATE_STOPPED ||
+                event.state === TrackPlayer.STATE_READY
+            ) {
+                console.log("in the event2" + event.state + " " + currentPlayback);
+
+                setMiddleButtonText("►");
+            }
+        }
     });
 
     const { style, onNext, onPrevious, onTogglePlayback } = props;
 
-    var middleButtonText = "PlayDatShit";
 
-    if (
-        playbackState === TrackPlayer.STATE_PLAYING ||
-        playbackState === TrackPlayer.STATE_BUFFERING
-    ) {
-        middleButtonText = "Pause";
-    }
 
     return (
         <View style={[styles.card, style]}>
@@ -118,7 +137,7 @@ const styles = StyleSheet.create({
         backgroundColor: "grey"
     },
     progress: {
-        height: 1,
+        height: 5,
         width: "90%",
         marginTop: 10,
         flexDirection: "row"

@@ -9,28 +9,67 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  ViewPropTypes} from 'react-native';
+  ViewPropTypes, SafeAreaView, FlatList, StatusBar, Button, Dimensions,
+} from 'react-native';
 import Player from './Player';
+import Track from '../models/Track';
+
+import playerService from '../services/playerService';
+
 
 export default class PlayerComponent extends React.Component {
 
 
+  state = {
+    trackTitles: null,
+    playbackState: null,
+    currentTrack: null,
+    selectedTrack: null
+  }
+
   constructor(props) {
     super(props);
     this.togglePlayback = this.togglePlayback.bind(this);
-  }
-
-  state = {
-    playback: null,
-    trackArtist: '',
-    trackTitle: '',
-    trackAlbum: '',
 
   }
+
+  playNow(fileObj) {
+    TrackPlayer.reset().then(
+      TrackPlayer.add({
+        id: (fileObj.id).toString(),
+        url: "file://" + fileObj.path,
+        title: trimTrackName(fileObj.name),
+        artist: ""
+      })
+          .then(() => {
+            TrackPlayer.skip((fileObj.id).toString())
+                .then(() => this.togglePlayback())
+          })
+    )
+  }
+
 
   async getPlaybackState() {
    return await TrackPlayer.getState()
   }
+
+  renderItem = ({ item }) => {
+    if(item) {
+      // console.log(item.name)
+      // const backgroundColor = item.id === this.state.selectedTrack.id ? "#6e3b6e" : "#f9c2ff";
+      const backgroundColor = "#DDEFF7"
+
+      return (
+          <Item
+              item={item}
+              onPress={() => {
+                this.playNow(item)
+              }}
+              style={{backgroundColor}}
+          />
+      );
+    }
+  };
 
 
   componentDidMount(): void {
@@ -45,42 +84,37 @@ export default class PlayerComponent extends React.Component {
     });
 
     this.getPlaybackState().then(playbackState => this.setState(
-        {playback: playbackState}
+        {playbackState: playbackState}
     ));
 
-    // let track = {
-    //   id: "1234", // Must be a string, required
-    //
-    //
-    //   url: 'file///Users/chrissims/Library/Developer/CoreSimulator/Devices/07A47CE7-672F-418D-8F21-8E8B02EB0215/data/Containers/Data/Application/146A7817-53D4-492C-9ECC-21DDB0360F16/Documents/MediaLibrary/RNFetchBlobTmp_x49ga6kblxqhtzgeml2dl.mp3',
-    //   // url: `file://${localUrl}`, // Load media from the file system
-    //
-    //   title: "test",
-    //   artist: "Test",
-    //
-    // };
-    //
-    // TrackPlayer.add([track]).then(() => console.log("track enqueued"));
+
+    playerService.getTracksFromLibrary()
+        .then( (tracks) => {
+
+          this.setState(
+              {trackTitles: tracks}
+          )
 
 
-    // TrackPlayer.addEventListener('playback-track-changed', async (data) => {
-    //   console.log(data);
-    //   // const track = await TrackPlayer.getTrack(data.nextTrack);
-    //   // this.setState({trackTitle: track.title});
-    // });
+        })
+
 
   }
 
   async togglePlayback() {
-    console.log("pause pressed");
-    console.log(this.getPlaybackState())
-    TrackPlayer.getCurrentTrack().then(track => console.log(track));
 
-    if (this.state.playback === TrackPlayer.STATE_PLAYING) {
+    // console.log(this.getPlaybackState())
+    // TrackPlayer.getCurrentTrack().then(track => console.log(track));
+
+    if (this.state.playbackState === TrackPlayer.STATE_PLAYING ||
+        this.state.playbackState === TrackPlayer.STATE_BUFFERING ) {
       await TrackPlayer.pause()
     }
-
-    else {
+    else if(
+        this.state.playbackState === TrackPlayer.STATE_PAUSED ||
+        this.state.playbackState === TrackPlayer.STATE_STOPPED ||
+        this.state.playbackState === TrackPlayer.STATE_READY
+    ){
       await TrackPlayer.play()
     }
 
@@ -88,32 +122,93 @@ export default class PlayerComponent extends React.Component {
         .then(playbackState =>
             this.setState(
         {
-                playback: playbackState
+          playbackState: playbackState
             }
         ))
 
   }
 
   render(): React.ReactNode {
-    console.log(this.state);
-    // TrackPlayer.setupPlayer().then(() => console.log('wut?'));
+
+
     return (
       <View style={styles.playerComponent}>
-        <Text>hi</Text>
-        <Player onNext={TrackPlayer.skipToNext}
+        <Player onNext={() => TrackPlayer.skipToNext()}
                 onTogglePlayback={this.togglePlayback}
-                onPrevious={TrackPlayer.skipToPrevious}/>
+                onPrevious={() => TrackPlayer.skipToPrevious()}/>
+
+        {this.state.trackTitles &&
+        <SafeAreaView style={styles.container}>
+          <FlatList
+              data={this.state.trackTitles}
+              renderItem={this.renderItem}
+
+              keyExtractor={item => {
+                if(item){
+                  return (item.id).toString()
+                }
+              }}
+
+              extraData={this.state.selectedTrack}
+          />
+        </SafeAreaView>
+        }
+
+        {/*<Button onPress={() => console.log(this.state.trackTitles)}*/}
+        {/*        title="log tracks"*/}
+        {/*        color="#871589"/>*/}
+
       </View>
     );
   }
-
-  // The player is ready to be used
 }
 
+const trimTrackName = (trackName)  => {
+  trackName = trackName.replace(".mp3", "")
+
+  if(trackName.length > 50) {
+    trackName = trackName.substring(0, 40)
+  }
+
+  return trackName;
+}
+
+
+const Item = ({item, onPress, style}) => (
+
+    <TouchableOpacity
+        onPress={onPress} style={[styles.item, style]}>
+      <Text style={styles.title} numberOfLines={1} >{item.name}</Text>
+    </TouchableOpacity>
+
+);
+
+
+
+
+
 const styles = StyleSheet.create({
+  container: {
+    marginTop: 10,
+    height: 400
+
+  },
+
   playerComponent: {
     marginLeft: 50,
+    marginTop: 20,
     marginRight: 50,
     marginBottom: 30,
-  }
+    alignItems: "center",
+  },
+  item: {
+    backgroundColor: '#cbe5d7',
+    padding: 7,
+    marginVertical: 0,
+    borderWidth: 1,
+    borderRadius: 2,
+  },
+  title: {
+    fontSize: 10,
+  },
 })
