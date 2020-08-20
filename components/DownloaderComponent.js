@@ -12,6 +12,8 @@ import { showMessage, hideMessage } from "react-native-flash-message";
 import LinearGradient from "react-native-linear-gradient";
 import { Button, Text } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import WebviewDownloaderComponent from './WebviewDownloaderComponent';
+
 Icon.loadFont()
 
 
@@ -29,6 +31,7 @@ export default class DownloaderComponent extends React.Component {
         track: null,
         isFetching: false,
         isDownloading: false,
+        usingBrowser: false
     }
 
 
@@ -37,6 +40,9 @@ export default class DownloaderComponent extends React.Component {
         this.onNetworkFail = this.onNetworkFail.bind(this);
         this.downloadProgressCallBack = this.downloadProgressCallBack.bind(this);
         this.updateDownloadProgress = this.updateDownloadProgress.bind(this);
+        this.onValidRequest = this.onValidRequest.bind(this);
+        this.onBrowserBackPressed = this.onBrowserBackPressed.bind(this);
+
         this.listener =  this.props.navigation.addListener('focus', () => {
             if(this.props.route.params && this.props.route.params.url != null) {
                 this.setState({
@@ -99,7 +105,6 @@ export default class DownloaderComponent extends React.Component {
                 url: 'file://' + trackObj.path,
                 artist: ''
             }).then( () => {
-                console.log("track enqueued: " + trackObj.name)
             });
 
         })
@@ -262,16 +267,48 @@ export default class DownloaderComponent extends React.Component {
 
     }
 
+    onValidRequest(validUrl) {
+        this.setState(
+            {
+                usingBrowser: false,
+                url: validUrl
+            }, () => this.validate())
+    }
 
+
+
+    onBrowserBackPressed() {
+        this.setState({
+            usingBrowser: false
+        })
+    }
 
     render() {
+
         return (
             <LinearGradient colors={['#E3FDF6', '#624E86', '#2C1D47']} style={styles.linearGradient}>
 
-                {!this.state.track &&
+                {this.state.usingBrowser &&
+                    <View style={styles.webViewContainer}>
+                        <WebviewDownloaderComponent onValidRequest={this.onValidRequest}
+                                                    onBackPressed={this.onBrowserBackPressed}
+                        />
+                    </View>
+                }
 
-                <>
+                {(!this.state.usingBrowser && !this.state.track) &&
+
+                    <>
                     <View style={styles.inputContainer}>
+
+                        <View style={{alignItems:'center', padding: 10}}>
+                            <Text style={{fontSize: 25, fontFamily:"HelveticaNeue-Medium"}}>
+
+                                Paste in a video URL! 📺
+
+                            </Text>
+                        </View>
+
 
 
                         <TextInput
@@ -302,24 +339,33 @@ export default class DownloaderComponent extends React.Component {
                         </Button>
 
 
-                    </View>
+                        <View style={{alignItems:'center', paddingTop: 40}}>
+                            <Text style={{fontSize: 20, fontFamily:"HelveticaNeue-Medium"}}>
 
+                                -or-
+
+                            </Text>
+                        </View>
 
 
                     <View style={{marginTop: 50}}>
 
-                        <Text h3={true} h3Style={{color: "white", alignSelf: "center"}}>
-                        Browser
-                        </Text>
 
-                        <Button onPress={() => this.props.navigation.navigate('Web Download')}
+                        <View style={{alignItems: "center"}}>
+                            <Text style={{fontSize: 20, fontFamily: "HelveticaNeue-Medium"}}>
+                            Tap here to use the Browser!
+                            </Text>
+                        </View>
+
+                        <Button onPress={() => this.setState({usingBrowser: true})}
                             type={'clear'}
+
                             icon={
-                                <Icon
-                                    name="grav"
-                                    size={75}
-                                    color="black"
-                                />
+                            <Icon
+                                name="grav"
+                                size={75}
+                                color="black"
+                            />
                             }
                         >
 
@@ -327,22 +373,33 @@ export default class DownloaderComponent extends React.Component {
                         </Button>
 
                     </View>
-                </>
+
+                        {
+                            this.state.isFetching &&
+                            <View style={{alignItems: 'center'}}>
+                                <ProgressBarCircle/>
+                            </View>
+                        }
+                </View>
+
+                    </>
+
+
+
+
                 }
 
 
+                {
+                    this.state.track &&
+
+                    <View style = {styles.trackInfoContainer}>
 
 
-                <View style = {styles.trackInfoContainer}>
 
 
-                    {
-                        this.state.isFetching &&
-                        <ProgressBarCircle/>
-                    }
 
-                    {
-                        this.state.track &&
+
 
                         <View style={{justifyContent: 'center'}}>
 
@@ -391,6 +448,7 @@ export default class DownloaderComponent extends React.Component {
 
                                     type={'outline'}
 
+
                                     icon={
 
                                         <Icon
@@ -418,10 +476,9 @@ export default class DownloaderComponent extends React.Component {
 
                         </View>
 
-                    }
+                    </View>
+                }
 
-
-                </View>
             </LinearGradient>
 
         )
@@ -434,21 +491,28 @@ const styles = StyleSheet.create({
 
     linearGradient: {
         flex: 1,
-        paddingLeft: 15,
-        paddingRight: 15,
-        borderRadius: 5
+        borderRadius: 5,
+        marginBottom: 0,
+        paddingBottom: 0
+
+    },
+
+    webViewContainer: {
+        flex: 500
     },
 
     inputContainer: {
-        marginTop: 20,
-        flex: 2,
+        paddingBottom: 250,
+        paddingLeft: 30,
+        paddingRight: 30,
+        flex: 1,
         justifyContent: 'center',
 
     },
 
 
     trackInfoContainer: {
-        marginTop: 50,
+        marginTop: 70,
         alignSelf: "center",
         alignContent: 'center',
         alignItems: 'center',
@@ -458,6 +522,7 @@ const styles = StyleSheet.create({
     buttonText: {
         textAlign: 'center',
         color: 'white'
+
 
 
     },
@@ -471,13 +536,12 @@ const styles = StyleSheet.create({
         borderRadius:10,
         backgroundColor: 'transparent'
 
-
     },
 
     downloadButtonStyle:{
         borderColor: "black",
         borderWidth: 2,
-        marginTop: 25,
+        marginTop: 2,
         marginBottom: 15,
         alignSelf: 'center',
         justifyContent: 'center',

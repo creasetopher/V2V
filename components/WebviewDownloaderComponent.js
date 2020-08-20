@@ -1,6 +1,9 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
-import {Button, TouchableHighlight} from 'react-native';
+import {TouchableHighlight, View, StyleSheet} from 'react-native';
+import {getValidYoutubeVideo} from '../common/utils'
+import { Button, Text } from 'react-native-elements';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 // ITS UNDEF
 const jsInjection = `
@@ -21,46 +24,19 @@ export default class WebviewDownloaderComponent extends React.Component {
 
     webview = null;
 
-    getWatchParam(url) {
-        let newUrl = null;
-
-        if(url.startsWith("https://youtube.com")
-            || url.startsWith("https://m.youtube.com")) {
-
-            if (url.indexOf("watch?") != -1) {
-
-                newUrl = url;
-
-                if (url.indexOf("&") != -1) {
-
-                    newUrl = url.substring(
-                        0,
-                        url.indexOf("&")
-                    )
-                }
-            }
-        }
-
-        return newUrl;
-
+    constructor(props) {
+        super(props);
     }
 
-    isYoutubeVideo(url) {
 
-        url = this.getWatchParam(url);
+    onValidRequest(validUrl) {
+        this.webview.stopLoading()
+        // this.props.navigation.
 
-        if(url !== null) {
-            this.webview.stopLoading()
-            // this.props.navigation.
+        this.props.onValidRequest(validUrl)
 
-             this.props.navigation.navigate('V2V', {
-                 screen: "Download",
-                 params: {url: url}
-             })
+        this.webview.goBack()
 
-            this.webview.goBack()
-
-        }
     }
 
 
@@ -68,18 +44,55 @@ export default class WebviewDownloaderComponent extends React.Component {
     render() {
         return (
 
+        <View style={{flex: 1}}>
             <WebView
                 ref={(ref) => (this.webview = ref)}
                 source={{ uri: 'https://youtube.com' }}
-                style={{ marginTop: 20 }}
+                style={{ flex: 1 }}
                 onNavigationStateChange = { request => {
                     // console.log(navState);
                     // Keep track of going back navigation within component
                     // console.log(request)
-                    this.isYoutubeVideo(request.url)
+                    let validUrl = getValidYoutubeVideo(request.url)
+                    if (validUrl != null) {
+                        this.onValidRequest(validUrl)
+                    }
                 }}
                 mediaPlaybackRequiresUserAction={true}
             />
+
+
+
+            <View style={styles.floatingBackButtonView}>
+                <Button
+                    buttonStyle={{borderRadius: 30, backgroundColor: "purple"}}
+                    type='solid'
+                    onPress={()=>{this.props.onBackPressed()}}
+                    icon = {
+                        <Icon
+                            name="arrow-left"
+                            size={35}
+                            color="black"
+                        />
+                    }
+                />
+
+            </View>
+        </View>
         );
     }
 }
+
+const styles = StyleSheet.create({
+
+    floatingBackButtonView: {
+        position:'absolute',
+        right: 0,
+        bottom: 0,
+        marginBottom:75,
+        marginRight: 35,
+        zIndex:1,
+    },
+
+
+})

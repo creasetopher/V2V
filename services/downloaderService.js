@@ -6,6 +6,7 @@ import ios from 'rn-fetch-blob/ios';
 
 // const iosRN = RNFetchBlob.ios
 const MEDIA_DIR = `/MediaLibrary`
+const IMAGES_DIR = `${MEDIA_DIR}/Images`
 
 
 // Document directory path changes after each access
@@ -35,18 +36,27 @@ const createLibraryFolder = () => {
 
 const getInfo = async (url, onFail) => {
 
-
     return await fetch(url)
         .then(res => res.json())
         .catch(err => onFail());
 
 }
 
+
+const saveImage = (url, filename, onFail) => {
+    let filenameNoWhitespace = filename.replace(/\s/g, "") + ".jpg"
+    let filepath = `${getDocumentDir()}${IMAGES_DIR}/${filenameNoWhitespace}`;
+
+
+}
+
+// download mp3
 const download = async (url, filename, onFail, downloadProgressCallBack) => {
 
     filename = filename.replace(/\//g, "-")
 
-    console.log("file" + filename)
+
+
     let filenameNoWhitespace = filename.replace(/\s/g, "") + ".mp3"
 
     let filepath = `${getDocumentDir()}${MEDIA_DIR}/${filenameNoWhitespace}`;
@@ -73,8 +83,6 @@ const download = async (url, filename, onFail, downloadProgressCallBack) => {
         filepath = `${getDocumentDir()}${MEDIA_DIR}/${filenameNoWhitespace}`
         return filepath;
 
-
-        // return filepath;
     }
 
 
@@ -101,6 +109,10 @@ const getTracksFromLibrary = async () => {
 
     })
     return tracks
+}
+
+const getLibrarySize = async () => {
+    return (await RNFetchBlob.fs.ls(`${getDocumentDir()}${MEDIA_DIR}`)).length
 }
 
 

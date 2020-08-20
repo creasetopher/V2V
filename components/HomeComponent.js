@@ -3,12 +3,13 @@ import PlayerComponent from './PlayerComponent';
 import TrackPlayer from 'react-native-track-player';
 import downloaderService from '../services/downloaderService';
 import LinearGradient from 'react-native-linear-gradient';
-import { Button } from 'react-native-elements';
+import { Button, Text } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 Icon.loadFont()
 
 
-import {View, Text, StyleSheet} from 'react-native';
+
+import {View, StyleSheet} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
 export default class HomeComponent extends React.Component {
@@ -28,69 +29,105 @@ export default class HomeComponent extends React.Component {
 
   render() {
     return (
+    <View style={{flex: 1}}>
+
+        <View style={{flex: 1}}>
+            <Header title={"this"}>
+
+                <View>
+
+
+                </View>
+
+            </Header>
+        </View>
+
         <LinearGradient colors={['#C0DDF9', '#3b5998', '#361B69']} style={styles.linearGradient}>
 
-            <View>
-              <Text style = {styles.homeText}>V2V</Text>
 
 
-            {/*<Button onPress={() => this.props.navigation.navigate('Player')}*/}
-            {/*        type={'clear'}*/}
-            {/*        icon={*/}
+            {/*<View style={styles.hamburger}>*/}
+            {/*    <Button*/}
+            {/*        buttonStyle={{borderRadius: 10, backgroundColor: "purple", alignSelf:'flex-start'}}*/}
+            {/*        type='solid'*/}
+            {/*        onPress={()=>{this.props.onBackPressed()}}*/}
+            {/*        icon = {*/}
             {/*            <Icon*/}
-            {/*                name="list-alt"*/}
-            {/*                size={15}*/}
-            {/*                color="white"*/}
-            {/*            />}*/}
-            {/*        title={" playlist"}*/}
-            {/*        titleStyle={{color: 'white'}}*/}
-            {/*/>*/}
+            {/*                name="arrow-left"*/}
+            {/*                size={35}*/}
+            {/*                color="black"*/}
+            {/*            />*/}
+            {/*        }*/}
+            {/*    />*/}
 
+            {/*</View>*/}
 
-            {/*<Button onPress={() => this.props.navigation.navigate('Download')}*/}
-            {/*        type={'clear'}*/}
-            {/*        icon={*/}
-            {/*            <Icon*/}
-            {/*                name="chain"*/}
-            {/*                size={15}*/}
-            {/*                color="white"*/}
-            {/*            />}*/}
-            {/*        title={"download with url"}*/}
-            {/*        titleStyle={{color: 'white', marginStart: 2}}*/}
-            {/*/>*/}
+            <View style={styles.homeContainer}>
 
-            {/*<Button onPress={() => this.props.navigation.navigate('Web Download')}*/}
-            {/*        type={'clear'}*/}
-            {/*        icon={*/}
-            {/*            <Icon*/}
-            {/*                name="television"*/}
-            {/*                size={15}*/}
-            {/*                color="white"*/}
-            {/*            />}*/}
-            {/*        title={"download with url"}*/}
-            {/*        titleStyle={{color: 'white'}}*/}
-            {/*/>*/}
+                <View style={{flex:1}}></View>
+                <View style={{flex:4, alignItems: "center"}}>
+                    <Icon
+                        name={'circle-o-notch'}
+                        size={22}
+                        color="black"
+                    />
+                    <Icon
+                        name="child"
+                        size={50}
+                        color="black"
+                    />
+                    <Text style = {styles.homeText}>V2V</Text>
+                </View>
 
             </View>
         </LinearGradient>
-
+    </View>
     )
     // return <Text>hi</Text>;
   }
   // The player is ready to be used
 }
 
+const Header = ({title}) => {
+
+    return (
+        <View style={styles.header}>
+            <Text style={{fontSize: 20}}>{title}</Text>
+        </View>
+    );
+
+
+}
+
 const styles = StyleSheet.create({
     linearGradient: {
-        flex: 1,
+        flex: 8,
         paddingLeft: 15,
         paddingRight: 15,
         borderRadius: 5
     },
+
+    header: {
+        backgroundColor: "white",
+        flex: 2,
+    },
+
+    homeContainer: {
+        flex: 6,
+        alignItems: 'center'
+    },
+
     homeText: {
-        fontSize: 100,
-        marginTop: 110,
-        marginLeft: 100,
-        marginBottom: 30,
-    }
+        fontSize: 65,
+    },
+
+    hamburger: {
+        position:'absolute',
+        left: 0,
+        top: 0,
+        marginTop:10,
+        marginRight: 35,
+        zIndex: 1
+    },
+
 })

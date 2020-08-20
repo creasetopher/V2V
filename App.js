@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   View,
-  Text,
   StatusBar,
   TouchableOpacity
 } from 'react-native';
@@ -17,22 +16,23 @@ import {
 
 import {NavigationContainer, DefaultTheme, DarkTheme} from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 
-import FlashMessage from "react-native-flash-message";
+// import { createStackNavigator } from '@react-navigation/stack';
+
 import HomeComponent from './components/HomeComponent';
-import TrackPlayer from 'react-native-track-player';
-import PlaylistScreen from './screens/PlaylistScreen';
 import PlayerComponent from './components/PlayerComponent';
 import DownloaderComponent from './components/DownloaderComponent'
-import {getBackgroundColor} from 'react-native/Libraries/LogBox/UI/LogBoxStyle';
-import WebviewDownloaderComponent from './components/WebviewDownloaderComponent';
 import HomeTabBarIcon from './components/HomeTabBarIcon';
 import PlaylistTabBarIcon from './components/PlaylistTabBarIcon';
 import DownloadTabBarIcon from './components/DownloadTabBarIcon';
-
+import {Text} from 'react-native-elements';
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+// const Stack = createStackNavigator();
+const Drawer = createDrawerNavigator();
+
+
+
 
 function Tabs(props) {
   // console.log("any props below");
@@ -116,30 +116,27 @@ export default class App extends React.Component {
     return (
 
         <NavigationContainer>
-
-          <Stack.Navigator>
-
-            <Stack.Screen
-                name="V2V"
-                component={Tabs}
+          <Drawer.Navigator initialRouteName="Home">
+            <Drawer.Screen name="Home"
+                           component={Tabs}
+                           options = {
+                             {
+                             headerStyle: {
+                               height: 90,
+                               backgroundColor: '#f4511e'
+                             },
+                             title: "this"
+                           }}
             />
-
-            <Stack.Screen
-                name="Web Download"
-                component={WebviewDownloaderComponent}
-                options={{ title: 'Download' }}
-            />
-
-
-
-          </Stack.Navigator>
-
+          </Drawer.Navigator>
 
         </NavigationContainer>
 
     );
   }
 }
+
+
 
 
 // const MyTheme = {
@@ -158,12 +155,6 @@ const styles = StyleSheet.create({
 
   scrollView: {
     backgroundColor: Colors.lighter,
-  },
-
-  header: {
-
-
-
   },
 
   engine: {
@@ -203,34 +194,3 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
 });
-
-// export default App;
-
-
-
-
-
-//
-// import React from "react";
-// import { createStackNavigator, createAppContainer } from "react-navigation-stack";
-//
-// import LandingScreen from "./screens/LandingScreen";
-// import PlaylistScreen from "./screens/PlaylistScreen";
-//
-// const AppNavigator = createStackNavigator(
-//     {
-//       Landing: {
-//         screen: LandingScreen
-//       },
-//       Playlist: {
-//         screen: PlaylistScreen
-//       }
-//     },
-//     { initialRouteName: "Landing" }
-// );
-//
-// const AppContainer = createAppContainer(AppNavigator);
-//
-// export default App = () => {
-//   return <AppContainer />;
-// }

@@ -65,13 +65,12 @@ export default function Player(props) {
 
         if (event.type === TrackPlayer.TrackPlayerEvents.PLAYBACK_STATE) {
 
-            console.log("in the event");
             let currentPlayback = playbackState
+
             if (
                 event.state === TrackPlayer.STATE_PLAYING ||
                 event.state === TrackPlayer.STATE_BUFFERING
             ) {
-                console.log("in the event1" + event.state + " " + currentPlayback);
 
                 setMiddleButtonText("||");
             }
@@ -100,7 +99,9 @@ export default function Player(props) {
             <Text style={styles.artist}>{trackArtist}</Text>
             <View style={styles.controls}>
                 <ControlButton title={"<<"} onPress={onPrevious} />
-                <ControlButton title={middleButtonText} onPress={async () => await onTogglePlayback()} />
+                <ControlButton title={middleButtonText} onPress={async () => {
+                    await onTogglePlayback()
+                }} />
                 <ControlButton title={">>"} onPress={onNext} />
             </View>
         </View>
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     card: {
         width: "80%",
         elevation: 1,
-        borderRadius: 4,
+        borderRadius: 10,
         shadowRadius: 2,
         shadowOpacity: 0.1,
         alignItems: "center",
@@ -143,6 +144,7 @@ const styles = StyleSheet.create({
         flexDirection: "row"
     },
     title: {
+        textAlign: "center",
         marginTop: 10
     },
     artist: {

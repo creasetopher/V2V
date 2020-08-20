@@ -15,6 +15,7 @@ import Player from './Player';
 import Track from '../models/Track';
 
 import playerService from '../services/playerService';
+import LinearGradient from "react-native-linear-gradient";
 
 
 export default class PlayerComponent extends React.Component {
@@ -43,7 +44,7 @@ export default class PlayerComponent extends React.Component {
       })
           .then(() => {
             TrackPlayer.skip((fileObj.id).toString())
-                .then(() => this.togglePlayback())
+                .then(() => TrackPlayer.play())
           })
     )
   }
@@ -57,8 +58,9 @@ export default class PlayerComponent extends React.Component {
     if(item) {
       // console.log(item.name)
       // const backgroundColor = item.id === this.state.selectedTrack.id ? "#6e3b6e" : "#f9c2ff";
-      const backgroundColor = "#DDEFF7"
+      const backgroundColor = "#257A5E"
 
+      // console.log(item.path);
       return (
           <Item
               item={item}
@@ -90,20 +92,21 @@ export default class PlayerComponent extends React.Component {
 
     playerService.getTracksFromLibrary()
         .then( (tracks) => {
-
           this.setState(
               {trackTitles: tracks}
           )
-
-
         })
 
+    TrackPlayer.addEventListener('playback-state',(playbackState) => {
+
+      this.setState({playbackState: playbackState.state})
+    });
 
   }
 
   async togglePlayback() {
 
-    // console.log(this.getPlaybackState())
+    console.log(this.state.playbackState  === TrackPlayer.STATE_PLAYING)
     // TrackPlayer.getCurrentTrack().then(track => console.log(track));
 
     if (this.state.playbackState === TrackPlayer.STATE_PLAYING ||
@@ -115,16 +118,19 @@ export default class PlayerComponent extends React.Component {
         this.state.playbackState === TrackPlayer.STATE_STOPPED ||
         this.state.playbackState === TrackPlayer.STATE_READY
     ){
+
       await TrackPlayer.play()
     }
 
     this.getPlaybackState()
-        .then(playbackState =>
-            this.setState(
+        .then(playbackState => {
+          console.log(playbackState);
+
+          this.setState(
         {
           playbackState: playbackState
             }
-        ))
+        )})
 
   }
 
@@ -132,33 +138,36 @@ export default class PlayerComponent extends React.Component {
 
 
     return (
-      <View style={styles.playerComponent}>
-        <Player onNext={() => TrackPlayer.skipToNext()}
-                onTogglePlayback={this.togglePlayback}
-                onPrevious={() => TrackPlayer.skipToPrevious()}/>
+        <LinearGradient colors={['#2C0552', '#3b5998', '#361B69']} style={styles.linearGradient}>
 
-        {this.state.trackTitles &&
-        <SafeAreaView style={styles.container}>
-          <FlatList
-              data={this.state.trackTitles}
-              renderItem={this.renderItem}
+          <View style={styles.playerComponent}>
+            <Player onNext={() => TrackPlayer.skipToNext()}
+                    onTogglePlayback={this.togglePlayback}
+                    onPrevious={() => TrackPlayer.skipToPrevious()}/>
 
-              keyExtractor={item => {
-                if(item){
-                  return (item.id).toString()
-                }
-              }}
+            {this.state.trackTitles &&
+            <SafeAreaView style={styles.container}>
+              <FlatList
+                  data={this.state.trackTitles}
+                  renderItem={this.renderItem}
 
-              extraData={this.state.selectedTrack}
-          />
-        </SafeAreaView>
-        }
+                  keyExtractor={item => {
+                    if(item){
+                      return (item.id).toString()
+                    }
+                  }}
 
-        {/*<Button onPress={() => console.log(this.state.trackTitles)}*/}
-        {/*        title="log tracks"*/}
-        {/*        color="#871589"/>*/}
+                  extraData={this.state.selectedTrack}
+              />
+          </SafeAreaView>
+          }
 
-      </View>
+          {/*<Button onPress={() => console.log(this.state.trackTitles)}*/}
+          {/*        title="log tracks"*/}
+          {/*        color="#871589"/>*/}
+
+          </View>
+        </LinearGradient>
     );
   }
 }
@@ -185,18 +194,25 @@ const Item = ({item, onPress, style}) => (
 
 
 
-
-
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 10,
-    height: 400
+
+  linearGradient: {
+    flex: 1,
+    borderRadius: 5,
+    marginBottom: 0,
+    paddingBottom: 0
 
   },
 
+  container: {
+    marginTop: 10,
+    flex: 1
+  },
+
   playerComponent: {
+    flex: 1,
     marginLeft: 50,
-    marginTop: 20,
+    marginTop: 40,
     marginRight: 50,
     marginBottom: 30,
     alignItems: "center",
@@ -204,11 +220,16 @@ const styles = StyleSheet.create({
   item: {
     backgroundColor: '#cbe5d7',
     padding: 7,
-    marginVertical: 0,
+    height: 35,
+    marginVertical: 2,
     borderWidth: 1,
-    borderRadius: 2,
+    borderRadius: 10,
   },
   title: {
+    color: "white",
+    alignSelf: "center",
+    textAlign: "center",
     fontSize: 10,
+    fontWeight: "bold"
   },
 })
