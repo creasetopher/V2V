@@ -9,15 +9,30 @@ import {
     Image,
     StyleSheet,
     Text,
+    TouchableWithoutFeedback,
     TouchableOpacity,
     View,
     ViewPropTypes
 } from "react-native";
 
+const PROGRESS_MAX_X = 173;
+
+const seek = async (pressLocation) => {
+    let totalLength = await TrackPlayer.getDuration();
+    return (pressLocation/PROGRESS_MAX_X) * totalLength;
+
+}
+
 function ProgressBar() {
     const progress = useTrackPlayerProgress();
 
     return (
+        <TouchableWithoutFeedback onPress={ async (press) => {
+            console.log(press);
+            let secondToSeekTo = await seek(press.nativeEvent.locationX);
+            await TrackPlayer.seekTo(secondToSeekTo)
+        }}>
+
         <View style={styles.progress}>
             <View style={{ flex: progress.position, backgroundColor: "red" }} />
             <View
@@ -27,6 +42,7 @@ function ProgressBar() {
                 }}
             />
         </View>
+        </TouchableWithoutFeedback>
     );
 }
 
@@ -57,7 +73,9 @@ export default function Player(props) {
         if (event.type === TrackPlayer.TrackPlayerEvents.PLAYBACK_TRACK_CHANGED) {
             const track = await TrackPlayer.getTrack(event.nextTrack);
             const { title, artist, artwork } = track || {};
-            setTrackTitle(title);
+            let itemName = title.substring(0, title.indexOf("_Track"));
+
+            setTrackTitle(itemName);
             setTrackArtist(artist);
             setTrackArtwork(artwork);
         }
@@ -124,11 +142,12 @@ const styles = StyleSheet.create({
         width: "80%",
         elevation: 1,
         borderRadius: 10,
+        marginTop: 30,
         shadowRadius: 2,
         shadowOpacity: 0.1,
         alignItems: "center",
         shadowColor: "black",
-        backgroundColor: "white",
+        backgroundColor: "#DBD7DF",
         shadowOffset: { width: 0, height: 1 }
     },
     cover: {

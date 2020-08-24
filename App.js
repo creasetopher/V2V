@@ -20,6 +20,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 
 // import { createStackNavigator } from '@react-navigation/stack';
 
+import FlashMessage from "react-native-flash-message";
+
 import HomeComponent from './components/HomeComponent';
 import PlayerComponent from './components/PlayerComponent';
 import DownloaderComponent from './components/DownloaderComponent'
@@ -27,6 +29,7 @@ import HomeTabBarIcon from './components/HomeTabBarIcon';
 import PlaylistTabBarIcon from './components/PlaylistTabBarIcon';
 import DownloadTabBarIcon from './components/DownloadTabBarIcon';
 import {Text} from 'react-native-elements';
+import SettingsComponent from './components/SettingsComponent';
 const Tab = createBottomTabNavigator();
 // const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -114,7 +117,7 @@ export default class App extends React.Component {
   render() {
 
     return (
-
+        <>
         <NavigationContainer>
           <Drawer.Navigator initialRouteName="Home">
             <Drawer.Screen name="Home"
@@ -125,13 +128,22 @@ export default class App extends React.Component {
                                height: 90,
                                backgroundColor: '#f4511e'
                              },
-                             title: "this"
+                             title: "Home"
                            }}
+            />
+
+            <Drawer.Screen name="Settings"
+                           component={SettingsComponent}
+                           options = {{
+                               title: "Settings"
+                             }}
             />
           </Drawer.Navigator>
 
         </NavigationContainer>
+        <FlashMessage position="top" />
 
+        </>
     );
   }
 }

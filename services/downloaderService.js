@@ -1,6 +1,6 @@
 import RNFetchBlob from 'rn-fetch-blob'
 import {VALIDATE_ENDPOINT, DOWNLOAD_ENDPOINT, API_URL} from '../common/constants';
-import {queryString} from '../common/utils';
+import {queryString, sanitizeFilename} from '../common/utils';
 import ios from 'rn-fetch-blob/ios';
 
 
@@ -14,10 +14,14 @@ const IMAGES_DIR = `${MEDIA_DIR}/Images`
 const getDocumentDir = () => RNFetchBlob.fs.dirs.DocumentDir;
 
 
-const createLibraryFolder = () => {
+const createLibraryFolders = () => {
     RNFetchBlob.fs.mkdir(`${getDocumentDir()}${MEDIA_DIR}`)
                     .then(() => console.log(`Library directory created`))
                     .catch(() => console.log(`Library directory already exists!!`))
+
+    RNFetchBlob.fs.mkdir(`${getDocumentDir()}${IMAGES_DIR}`)
+        .then(() => console.log(`Library/Images directory created`))
+        .catch(() => console.log(`Library/Images directory already exists!!`))
 }
 
 // const moveFileToLibrary = async (fromPath) => {
@@ -43,29 +47,59 @@ const getInfo = async (url, onFail) => {
 }
 
 
-const saveImage = (url, filename, onFail) => {
+const saveImage = async (url, filename, onFail) => {
     let filenameNoWhitespace = filename.replace(/\s/g, "") + ".jpg"
     let filepath = `${getDocumentDir()}${IMAGES_DIR}/${filenameNoWhitespace}`;
 
-
-}
-
-// download mp3
-const download = async (url, filename, onFail, downloadProgressCallBack) => {
-
-    filename = filename.replace(/\//g, "-")
-
-
-
-    let filenameNoWhitespace = filename.replace(/\s/g, "") + ".mp3"
-
-    let filepath = `${getDocumentDir()}${MEDIA_DIR}/${filenameNoWhitespace}`;
     try {
 
         await RNFetchBlob
             .config({
-                // fileCache: true,
-                // appendExt: 'mp3',
+                path: filepath
+            })
+            .fetch('GET',
+                url,
+                {})
+    } catch (err) {
+        console.log("The ERROR!")
+
+        console.log(err)
+        onFail()
+    }
+
+}
+
+
+const getNewTrackIdString = async () => {
+    let librarySize = await getLibrarySize();
+
+    return `_TrackID${librarySize.toString()}`
+
+}
+
+// download mp3
+// TODO: set timeout!
+const download = async (url, filename, onFail, downloadProgressCallBack) => {
+
+    // let libraryCount = getLibrarySize();
+
+    let trackIdString = await getNewTrackIdString()
+
+    filename = filename.replace(/\//g, "-");
+
+    filename = sanitizeFilename(filename)
+
+    // let filenameNoWhitespace = filename.replace(/\s/g, "") + ".mp3";
+
+    let filenameNoWhitespace = `${filename.replace(/\s/g, "")}${trackIdString}.mp3`;
+
+
+    let filepath = `${getDocumentDir()}${MEDIA_DIR}/${filenameNoWhitespace}`;
+
+    try {
+
+        await RNFetchBlob
+            .config({
                 path: filepath
             })
             .fetch('GET',
@@ -112,15 +146,25 @@ const getTracksFromLibrary = async () => {
 }
 
 const getLibrarySize = async () => {
-    return (await RNFetchBlob.fs.ls(`${getDocumentDir()}${MEDIA_DIR}`)).length
+    let count = 0
+    let libraryContents = await RNFetchBlob.fs.ls(`${getDocumentDir()}${MEDIA_DIR}`);
+    for(let item in libraryContents) {
+        let itemIsDir = await RNFetchBlob.fs.isDir(`${getDocumentDir()}${MEDIA_DIR}/${libraryContents[item]}`);
+        if(!itemIsDir && !libraryContents[item].startsWith(".")) {
+           count++;
+        }
+    }
+    return count
 }
 
 
 export default {
     download,
     getInfo,
-    createLibraryFolder,
+    createLibraryFolders,
+    saveImage,
     getTracksFromLibrary,
+    getNewTrackIdString
     // getDownloadProgress
     // moveFileToLibrary
 }

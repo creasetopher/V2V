@@ -65,7 +65,6 @@ export default class DownloaderComponent extends React.Component {
         }
 
 
-
         let dummyTrack = new Track({
                 track: {
                     title: "Title - Title Dudes",
@@ -171,7 +170,6 @@ export default class DownloaderComponent extends React.Component {
 
     onNetworkFail() {
 
-
         {
             Alert.alert(
                 "Error",
@@ -247,17 +245,22 @@ export default class DownloaderComponent extends React.Component {
         if(this.state.url) {
             this.setState({isDownloading: true})
 
+            let imageFileName = await downloaderService.getNewTrackIdString()
+
             await downloaderService.download(
                 `${API_URL}${DOWNLOAD_ENDPOINT}${queryString('url', this.state.url)}`,
                 this.state.track.title,
                 this.onNetworkFail,
                 this.downloadProgressCallBack
-            ).then(downloadPath => {
-                // console.log("??   " + downloadPath)
-                // this.enqueueTrack(downloadPath)
+            )
 
-            });
+            await downloaderService.saveImage(
+                this.state.track.thumbnailUrl,
+                imageFileName,
+                this.onNetworkFail);
 
+
+            //DONT SHOW IF DOWNLOAD FAILS!!!!!!!*************
             this.setState({isDownloading: false})
             showMessage({
                 message: "Download added to Library!",
@@ -289,12 +292,17 @@ export default class DownloaderComponent extends React.Component {
             <LinearGradient colors={['#E3FDF6', '#624E86', '#2C1D47']} style={styles.linearGradient}>
 
                 {this.state.usingBrowser &&
+                    <>
+                    <View style={{flex: 30}}>
+                    </View>
                     <View style={styles.webViewContainer}>
                         <WebviewDownloaderComponent onValidRequest={this.onValidRequest}
                                                     onBackPressed={this.onBrowserBackPressed}
                         />
                     </View>
-                }
+                    </>
+
+                        }
 
                 {(!this.state.usingBrowser && !this.state.track) &&
 
@@ -429,7 +437,7 @@ export default class DownloaderComponent extends React.Component {
 
                             {!this.state.isDownloading &&
 
-
+                                <>
 
                                 <Button
                                     onPress={
@@ -458,6 +466,35 @@ export default class DownloaderComponent extends React.Component {
                                         />
                                     }
                                 />
+
+                                <Button
+                                    onPress={() =>
+                                        this.setState({track: null})
+                                    }
+
+
+                                    containerStyle={{marginLeft: 100, marginRight: 100}}
+
+                                    title={"Go Back"}
+
+                                    titleStyle={{color: "#D2FFF0", marginLeft: 5}}
+
+                                    buttonStyle={styles.cancelButton}
+
+                                    type={'outline'}
+
+
+                                    icon={
+
+                                        <Icon
+                                            name="caret-left"
+                                            size={35}
+                                            color="black"
+                                        />
+                                    }
+                                />
+                                </>
+
 
                             }
 
@@ -522,9 +559,6 @@ const styles = StyleSheet.create({
     buttonText: {
         textAlign: 'center',
         color: 'white'
-
-
-
     },
 
     buttonStyle: {
@@ -541,11 +575,21 @@ const styles = StyleSheet.create({
     downloadButtonStyle:{
         borderColor: "black",
         borderWidth: 2,
-        marginTop: 2,
+        marginTop: 4,
         marginBottom: 15,
         alignSelf: 'center',
         justifyContent: 'center',
         borderRadius: 30
+    },
+
+    cancelButton:{
+        borderColor: "black",
+        borderWidth: 2,
+        marginTop: 5,
+        marginBottom: 15,
+        alignSelf: 'center',
+        justifyContent: 'center',
+        borderRadius: 20
     },
 
     urlInput: {

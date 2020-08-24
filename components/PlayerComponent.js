@@ -16,6 +16,7 @@ import Track from '../models/Track';
 
 import playerService from '../services/playerService';
 import LinearGradient from "react-native-linear-gradient";
+import {showMessage} from 'react-native-flash-message';
 
 
 export default class PlayerComponent extends React.Component {
@@ -32,15 +33,27 @@ export default class PlayerComponent extends React.Component {
     super(props);
     this.togglePlayback = this.togglePlayback.bind(this);
 
+    this.listener =  this.props.navigation.addListener('focus', () => {
+      playerService.getTracksFromLibrary()
+          .then( (tracks) => {
+            this.setState(
+                {trackTitles: tracks}
+            )
+          })
+
+    })
+
   }
 
   playNow(fileObj) {
+
     TrackPlayer.reset().then(
       TrackPlayer.add({
         id: (fileObj.id).toString(),
         url: "file://" + fileObj.path,
         title: trimTrackName(fileObj.name),
-        artist: ""
+        artist: "",
+        artwork: fileObj.image
       })
           .then(() => {
             TrackPlayer.skip((fileObj.id).toString())
@@ -55,16 +68,19 @@ export default class PlayerComponent extends React.Component {
   }
 
   renderItem = ({ item }) => {
+
     if(item) {
       // console.log(item.name)
       // const backgroundColor = item.id === this.state.selectedTrack.id ? "#6e3b6e" : "#f9c2ff";
-      const backgroundColor = "#257A5E"
+      const backgroundColor = "#BAB1B8"
 
       // console.log(item.path);
       return (
+
           <Item
               item={item}
               onPress={() => {
+                console.log(item);
                 this.playNow(item)
               }}
               style={{backgroundColor}}
@@ -93,9 +109,19 @@ export default class PlayerComponent extends React.Component {
     playerService.getTracksFromLibrary()
         .then( (tracks) => {
           this.setState(
-              {trackTitles: tracks}
+              {trackTitles: tracks}, () => {
+                this.state.trackTitles.forEach( track =>
+                TrackPlayer.add({
+                  id: (track.id).toString(),
+                  url: "file://" + track.path,
+                  title: trimTrackName(track.name),
+                  artist: "",
+                  artwork: track.image
+                }))}
           )
         })
+
+
 
     TrackPlayer.addEventListener('playback-state',(playbackState) => {
 
@@ -138,7 +164,8 @@ export default class PlayerComponent extends React.Component {
 
 
     return (
-        <LinearGradient colors={['#2C0552', '#3b5998', '#361B69']} style={styles.linearGradient}>
+
+        <LinearGradient colors={['#A491B5', '#3b5998', '#91B5A6']} style={styles.linearGradient}>
 
           <View style={styles.playerComponent}>
             <Player onNext={() => TrackPlayer.skipToNext()}
@@ -183,14 +210,18 @@ const trimTrackName = (trackName)  => {
 }
 
 
-const Item = ({item, onPress, style}) => (
+const Item = ({item, onPress, style}) => {
+
+  let itemName = item.name.substring(0, item.name.indexOf("_Track"));
+  return(
 
     <TouchableOpacity
         onPress={onPress} style={[styles.item, style]}>
-      <Text style={styles.title} numberOfLines={1} >{item.name}</Text>
+      <Text style={styles.title} numberOfLines={1}>{itemName}</Text>
     </TouchableOpacity>
+  );
+}
 
-);
 
 
 
@@ -217,19 +248,28 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     alignItems: "center",
   },
+
   item: {
     backgroundColor: '#cbe5d7',
-    padding: 7,
+    padding: 9,
     height: 35,
-    marginVertical: 2,
+    marginVertical: 3,
     borderWidth: 1,
     borderRadius: 10,
+
+    elevation: 1,
+    shadowRadius: 2,
+    shadowOpacity: .8,
+    shadowColor: "black",
+    shadowOffset: { width: 1, height: 1 }
+
   },
   title: {
     color: "white",
     alignSelf: "center",
     textAlign: "center",
-    fontSize: 10,
+    fontSize: 13,
+    fontFamily: "MalayalamSangamMN",
     fontWeight: "bold"
   },
 })
