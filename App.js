@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import {
   SafeAreaView,
@@ -18,7 +16,7 @@ import {NavigationContainer, DefaultTheme, DarkTheme} from '@react-navigation/na
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 
-// import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 
 import FlashMessage from "react-native-flash-message";
 
@@ -30,8 +28,13 @@ import PlaylistTabBarIcon from './components/PlaylistTabBarIcon';
 import DownloadTabBarIcon from './components/DownloadTabBarIcon';
 import {Text} from 'react-native-elements';
 import SettingsComponent from './components/SettingsComponent';
+import LoginComponent from './components/LoginComponent';
+import RegisterComponent from './components/RegisterComponent';
+import auth from '@react-native-firebase/auth';
+import {SignOut} from './components/SignOut';
+import {NavDrawer} from './components/NavDrawer';
 const Tab = createBottomTabNavigator();
-// const Stack = createStackNavigator();
+const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 
@@ -105,46 +108,125 @@ function Tabs(props) {
   }
 }
 
-export default class App extends React.Component {
-
-  constructor() {
-    super();
-  }
-
-  componentDidMount(){}
-
-
-  render() {
-
-    return (
+function Drawers(props) {
+    return(
         <>
-        <NavigationContainer>
-          <Drawer.Navigator initialRouteName="Home">
-            <Drawer.Screen name="Home"
-                           component={Tabs}
-                           options = {
-                             {
-                             headerStyle: {
-                               height: 90,
-                               backgroundColor: '#f4511e'
-                             },
-                             title: "Home"
-                           }}
-            />
+                <Drawer.Navigator initialRouteName="Home"
+                    drawerContent = {NavDrawer}>
+                    <Drawer.Screen name="Home"
+                                   component={Tabs}
+                                   options = {
+                                       {
+                                           headerStyle: {
+                                               height: 90,
+                                               backgroundColor: '#f4511e'
+                                           },
+                                           title: "Home"
+                                       }}
+                    />
 
-            <Drawer.Screen name="Settings"
-                           component={SettingsComponent}
-                           options = {{
-                               title: "Settings"
-                             }}
-            />
-          </Drawer.Navigator>
+                    <Drawer.Screen name="Settings"
+                                   component={SettingsComponent}
+                                   options = {{
+                                       title: "Settings"
+                                   }}
+                    />
 
-        </NavigationContainer>
-        <FlashMessage position="top" />
+                </Drawer.Navigator>
+
+            <FlashMessage position="top" />
 
         </>
+
     );
+}
+
+
+export default class App extends React.Component {
+
+    state = {
+        user: null,
+        // unsubscribe: null,
+        // isInitializing: true
+    }
+
+    constructor() {
+        super();
+        this.setState({user: auth().currentUser})
+    }
+
+
+
+  componentDidMount(){
+        // const unsubscriber = auth().onAuthStateChanged(this.onAuthStateChanged);
+        // this.setState({unsubscribe: unsubscriber})
+
+  }
+
+    // onAuthStateChanged = (user) => {
+    //
+    //     if(user) {
+    //         this.setState({
+    //             user: user,
+    //             isInitializing: false
+    //         })
+    //
+    //     }
+    //
+    // }
+
+
+
+
+
+    componentWillUnmount(): void {
+  }
+
+
+    render() {
+
+            return (
+                    <>
+
+                    <NavigationContainer>
+                            <Stack.Navigator initialRouteName={this.state.user ? 'Drawers' : 'Register'}>
+
+
+                                <Stack.Screen name="Register"
+                                              component={RegisterComponent}
+                                              options={
+                                                  {
+                                                      title: "Sign Up"
+                                                  }}
+                                />
+
+                                <Stack.Screen name="Login"
+                                              component={LoginComponent}
+                                              options={
+                                                  {
+                                                      title: "Login"
+                                                  }}
+                                />
+
+
+                                <Stack.Screen name="Drawers"
+                                              component={Drawers}
+                                              options={{
+                                                  headerShown: false
+                                              }}
+
+                                />
+
+                            </Stack.Navigator>
+
+                        </NavigationContainer>
+                        <FlashMessage position="top"/>
+
+                    </>
+            );
+
+
+
   }
 }
 

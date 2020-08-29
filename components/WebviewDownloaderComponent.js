@@ -5,16 +5,6 @@ import {getValidYoutubeVideo} from '../common/utils'
 import { Button, Text } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-// ITS UNDEF
-const jsInjection = `
-    let video = document.getElementsByTagName("VIDEO")[0];
-
-    if(video !== null){
-       alert(video)
-
-       alert("?!")
-    }        
-    true;`;
 
 
 

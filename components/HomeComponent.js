@@ -7,6 +7,7 @@ import { Button, Text } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Header} from './Header';
 Icon.loadFont()
+import auth from '@react-native-firebase/auth';
 
 
 
@@ -22,9 +23,6 @@ export default class HomeComponent extends React.Component {
       console.log("home mounted");
     downloaderService.createLibraryFolders();
 
-    // RNFetchBlob.fs.exists(
-    //         `/Users/chrissims/Library/Developer/CoreSimulator/Devices/07A47CE7-672F-418D-8F21-8E8B02EB0215/data/Containers/Data/Application/D5FC2B7E-36E2-485F-8F77-60C18D09DBF6/Documents/MediaLibrary/RNFetchBlobTmp_27d4z08zhfdiq5u6qswd77e.mp3`).then(exists => console.log(exists));
-//    after player is setup, nav to player component
 }
 
 
@@ -35,8 +33,9 @@ export default class HomeComponent extends React.Component {
         <View style={{flex: 1}}>
             <Header title={"this"} navigation={this.props.navigation}>
 
+                {/*not currently shown */}
                     <Button
-                        buttonStyle={{borderRadius: 10, backgroundColor: "purple", alignSelf:'flex-start'}}
+                        buttonStyle={{borderRadius: 10, backgroundColor: "purple", alignSelf:'flex-start', marginTop: 40}}
                         type='solid'
                         onPress={()=>{this.props.onBackPressed()}}
                         icon = {

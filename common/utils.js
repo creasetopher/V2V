@@ -29,7 +29,6 @@ const getWatchParam = (url) => {
 }
 
 export const getValidYoutubeVideo = (url) => {
-
     return getWatchParam(url);
 
 }

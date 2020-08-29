@@ -79,7 +79,7 @@ const getNewTrackIdString = async () => {
 
 // download mp3
 // TODO: set timeout!
-const download = async (url, filename, onFail, downloadProgressCallBack) => {
+const download = async (url, filename, onFail, downloadProgressCallBack, userDataObj) => {
 
     // let libraryCount = getLibrarySize();
 
@@ -87,7 +87,7 @@ const download = async (url, filename, onFail, downloadProgressCallBack) => {
 
     filename = filename.replace(/\//g, "-");
 
-    filename = sanitizeFilename(filename)
+    filename  = sanitizeFilename(filename)
 
     // let filenameNoWhitespace = filename.replace(/\s/g, "") + ".mp3";
 
@@ -102,12 +102,17 @@ const download = async (url, filename, onFail, downloadProgressCallBack) => {
             .config({
                 path: filepath
             })
-            .fetch('GET',
+            .fetch('POST',
                 `${API_URL}${DOWNLOAD_ENDPOINT}${queryString('url', url)}`,
-
                 {
-                    //some headers ..
-                }).progress({ interval : 50 }, (received, total) => {
+                    'Content-Type': 'application/json',
+                },
+                [
+                    {name: "username", data: userDataObj.username},
+                    {name: "token", data: userDataObj.token}
+                ]
+
+            ).progress({ interval : 50 }, (received, total) => {
                     if(downloadProgressCallBack != null) {
                         downloadProgressCallBack(received, total)
                     }

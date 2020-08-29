@@ -47,6 +47,10 @@ export default class PlayerComponent extends React.Component {
 
   playNow(fileObj) {
 
+
+    //dont reset because this clears the queue -- after track plays,
+    // queue is empty, nothing plays next
+
     TrackPlayer.reset().then(
       TrackPlayer.add({
         id: (fileObj.id).toString(),
