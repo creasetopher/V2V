@@ -79,7 +79,7 @@ const getNewTrackIdString = async () => {
 
 // download mp3
 // TODO: set timeout!
-const download = async (url, filename, onFail, downloadProgressCallBack, userDataObj) => {
+const download = async (url, filename, downloadProgressCallBack, userDataObj) => {
 
     // let libraryCount = getLibrarySize();
 
@@ -97,8 +97,9 @@ const download = async (url, filename, onFail, downloadProgressCallBack, userDat
     let filepath = `${getDocumentDir()}${MEDIA_DIR}/${filenameNoWhitespace}`;
 
     try {
+        let idToken = await userDataObj.getIdToken(true);
 
-        await RNFetchBlob
+        let res = await RNFetchBlob
             .config({
                 path: filepath
             })
@@ -106,18 +107,21 @@ const download = async (url, filename, onFail, downloadProgressCallBack, userDat
                 `${API_URL}${DOWNLOAD_ENDPOINT}${queryString('url', url)}`,
                 {
                     'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + idToken,
                 },
-                [
-                    {name: "username", data: userDataObj.username},
-                    {name: "token", data: userDataObj.token}
-                ]
+                JSON.stringify(
+                    {uid: userDataObj.uid}
+                )
 
             ).progress({ interval : 50 }, (received, total) => {
                     if(downloadProgressCallBack != null) {
                         downloadProgressCallBack(received, total)
                     }
             })
-                    //     .then( (res) =>
+
+        if(res.info().status === 401) {
+            throw new Error("Error downloading track")
+        }
 
         filepath = `${getDocumentDir()}${MEDIA_DIR}/${filenameNoWhitespace}`
         return filepath;

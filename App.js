@@ -37,29 +37,23 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-
-
+const getUser = () => auth().currentUser;
 
 function Tabs(props) {
-  // console.log("any props below");
-  // console.log(props);
-
-  const [url, setUrl] = React.useState("")
-
-
-  if(props) {
+    let tryGetUser;
     try {
-      setUrl(
-          props.route.params.url !== undefined ? props.route.params.url : null
-      )
-      props.navigation.jumpTo("Download", {url: url})
+        tryGetUser = props.route.params.user
     }
     catch (e) {
-
+        tryGetUser = getUser()
     }
-  }
+    if (tryGetUser == null) {
+        tryGetUser = {name: "New User"}
+    }
 
-  if(!url) {
+    const user = tryGetUser;
+
+
     return (
         <Tab.Navigator
             initialRouteName={'Home'}
@@ -81,7 +75,7 @@ function Tabs(props) {
         >
           <Tab.Screen name="Download"
                       component={DownloaderComponent}
-                      {...props}
+                      initialParams = {{user: user}}
 
                       options={
                         {tabBarIcon:  (props) => <DownloadTabBarIcon {...props}/>}
@@ -90,12 +84,14 @@ function Tabs(props) {
 
           <Tab.Screen name="Home"
                       component={HomeComponent}
+                      initialParams = {{user: user}}
                       options={
                         {tabBarIcon:  (props) => <HomeTabBarIcon {...props}/>}
                       }
           />
 
           <Tab.Screen name="Player" component={PlayerComponent}
+                      initialParams = {{user: user}}
                       options={
                         {tabBarIcon:  (props) => <PlaylistTabBarIcon {...props}/>}
                       }
@@ -105,10 +101,14 @@ function Tabs(props) {
           {/*<Tab.Screen name="Web Download" component={WebviewDownloaderComponent}/>*/}
         </Tab.Navigator>
     );
-  }
+  // }
 }
 
 function Drawers(props) {
+    console.log("props from Dra");
+    console.log(props.route);
+
+
     return(
         <>
                 <Drawer.Navigator initialRouteName="Home"
@@ -116,13 +116,15 @@ function Drawers(props) {
                     <Drawer.Screen name="Home"
                                    component={Tabs}
                                    options = {
+
                                        {
                                            headerStyle: {
                                                height: 90,
                                                backgroundColor: '#f4511e'
                                            },
                                            title: "Home"
-                                       }}
+                                       }
+                                   }
                     />
 
                     <Drawer.Screen name="Settings"
@@ -145,14 +147,14 @@ function Drawers(props) {
 export default class App extends React.Component {
 
     state = {
-        user: null,
+        user: getUser(),
         // unsubscribe: null,
         // isInitializing: true
     }
 
     constructor() {
         super();
-        this.setState({user: auth().currentUser})
+        // this.setState({user: auth().currentUser})
     }
 
 
@@ -174,9 +176,6 @@ export default class App extends React.Component {
     //     }
     //
     // }
-
-
-
 
 
     componentWillUnmount(): void {

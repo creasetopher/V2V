@@ -15,16 +15,21 @@ import {View, StyleSheet} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
 export default class HomeComponent extends React.Component {
+
+    state = {
+        user: null
+    }
   constructor(props) {
     super(props);
+    // this.setState({user: auth().currentUser})
   }
   // setup player at start
   componentDidMount(): void {
       console.log("home mounted");
+      console.log(this.props)
     downloaderService.createLibraryFolders();
 
 }
-
 
   render() {
     return (

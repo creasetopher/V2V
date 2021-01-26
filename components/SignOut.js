@@ -16,8 +16,8 @@ const SignOut = (nav) => {
             {
                 text: "Ok",
                 onPress: () => {
-                    auth().signOut()
                     nav.navigate("Login")
+                    auth().signOut()
 
                 },
                 style: "default"

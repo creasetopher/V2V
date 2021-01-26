@@ -13,7 +13,7 @@ import LinearGradient from "react-native-linear-gradient";
 import { Button, Text } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import WebviewDownloaderComponent from './WebviewDownloaderComponent';
-
+import auth from '@react-native-firebase/auth';
 Icon.loadFont()
 
 
@@ -27,6 +27,7 @@ export default class DownloaderComponent extends React.Component {
     listener: null;
 
     state = {
+        user: null,
         url: '',
         track: null,
         isFetching: false,
@@ -43,40 +44,33 @@ export default class DownloaderComponent extends React.Component {
         this.onValidRequest = this.onValidRequest.bind(this);
         this.onBrowserBackPressed = this.onBrowserBackPressed.bind(this);
 
+
         this.listener =  this.props.navigation.addListener('focus', () => {
-            if(this.props.route.params && this.props.route.params.url != null) {
-                this.setState({
+            if(this.props.route.params.url) {
+
+                try {
+
+                    this.setState({
+
                     url: this.props.route.params.url
-                }, () => this.validate())
+                        }, () => this.validate())
+                }
+
+                catch (err) {
+                    this.onValidateFail()
+                }
             }
 
         })
+
+        console.log(props);
+
+        // this.setState({user: props.user})
 
     }
 
 
     componentDidMount() {
-        console.log("mounted downloader");
-
-        if(this.props.route.params && this.props.route.params.url != null) {
-            this.setState({
-                url: this.props.route.params.url
-            }, () => this.validate())
-        }
-
-
-        let dummyTrack = new Track({
-                track: {
-                    title: "Title - Title Dudes",
-                    author: "author",
-                    views: 100000,
-                    length: 200,
-                    thumbnail: "https://g.foolcdn.com/editorial/images/553815/line-on-chart-falling-stock-down.jpg"
-                }
-            })
-        // this.setState({track: dummyTrack})
-
-
     }
 
     updateDownloadProgress() {
@@ -84,55 +78,24 @@ export default class DownloaderComponent extends React.Component {
     }
 
 
-    getAllTracks() {
-        downloaderService.getTracksFromLibrary().then( tracks =>  {
-            // console.log("getlibtracks resolved?")
-            // console.log(tracks)
-
-            this.enqueueTracks(tracks)
-        })
-        // console.log("getalltracks called")
-    }
 
 
+    onValidateFail() {
+        {
+            Alert.alert(
+                "Error",
+                "Shoot, something weird happened... Try again!",
+                [
+                    {
+                        text: "Ok",
+                        onPress: () => {},
+                        style: 'default'
+                    },
+                ],
+                { cancelable: true }
+            );
 
-    enqueueTracks(tracks) {
-        tracks.forEach(trackObj => {
-            TrackPlayer.add({
-                id: trackObj.id,
-                title: trackObj.name,
-                url: 'file://' + trackObj.path,
-                artist: ''
-            }).then( () => {
-            });
-
-        })
-
-
-
-    }
-
-
-
-    enqueueTrack(localUrl) {
-
-        // let filePath = `${dirs.DocumentDir}/${this.state.track.title}`
-        // let fp = `${RNFetchBlob.fs.dirs.DocumentDir}/MediaLibrary/${this.state.track.title}`
-        // console.log("this is fp from enqueue " + fp)
-        // console.log("the path given to enqueue " + localUrl);
-        let track = {
-            id: this.state.track.title, // Must be a string, required
-
-            url: `file://${localUrl}`, // Load media from the file system
-
-            title: this.state.track.title,
-            artist: this.state.track.author,
-
-            artwork: this.state.track.thumbnailUrl, // Load artwork from the network
-        };
-
-        TrackPlayer.add([track]).then( () => console.log("track enqueued"));
-
+        }
     }
 
     onValidateSuccess() {
@@ -247,25 +210,35 @@ export default class DownloaderComponent extends React.Component {
 
             let imageFileName = await downloaderService.getNewTrackIdString()
 
-            await downloaderService.download(
-                `${API_URL}${DOWNLOAD_ENDPOINT}${queryString('url', this.state.url)}`,
-                this.state.track.title,
-                this.onNetworkFail,
-                this.downloadProgressCallBack
-            )
+            try {
 
-            await downloaderService.saveImage(
-                this.state.track.thumbnailUrl,
-                imageFileName,
-                this.onNetworkFail);
+                await downloaderService.download(
+                    `${API_URL}${DOWNLOAD_ENDPOINT}${queryString('url', this.state.url)}`,
+                    this.state.track.title,
+                    this.downloadProgressCallBack,
+                    this.props.route.params.user
+                )
+
+                await downloaderService.saveImage(
+                    this.state.track.thumbnailUrl,
+                    imageFileName,
+                    this.onNetworkFail);
 
 
-            //DONT SHOW IF DOWNLOAD FAILS!!!!!!!*************
-            this.setState({isDownloading: false})
-            showMessage({
-                message: "Download added to Library!",
-                type: "success",
-            });
+                //DONT SHOW IF DOWNLOAD FAILS!!!!!!!*************
+                this.setState({isDownloading: false})
+                showMessage({
+                    message: "Download added to Library!",
+                    type: "success",
+                });
+            }
+
+            catch (err) {
+                this.setState({isDownloading: false})
+                this.onNetworkFail()
+            }
+
+
         }
 
     }

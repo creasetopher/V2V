@@ -17,7 +17,7 @@ export default class LoginComponent extends React.Component {
         username: {
             rawString: null,
 
-            asEmail : () =>  `${this.state.username.rawString}@v2v.io`
+            asEmail : () => `${this.state.username.rawString}@v2v.io`
             },
         password: null,
     }
@@ -25,8 +25,18 @@ export default class LoginComponent extends React.Component {
     constructor(props) {
         super(props);
         if (auth().currentUser) {
+            console.log(auth().currentUser);
             this.props.navigation.navigate('Drawers')
         }
+
+        // this.listener =  this.props.navigation.addListener('focus', () => {
+        //     if(this.props.route.params && this.props.route.params.url != null) {
+        //         this.setState({
+        //             url: this.props.route.params.url
+        //         })
+        //     }
+        //
+        // })
     }
 
     // setup player at start
@@ -40,25 +50,35 @@ export default class LoginComponent extends React.Component {
 
     handleLogin() {
 
-        auth().signInWithEmailAndPassword(this.state.username.asEmail(), this.state.password)
+        console.log("in login handler")
+
+        try {
+            auth().signInWithEmailAndPassword(this.state.username.asEmail(), this.state.password)
                 .then(() => {
-                    this.props.navigation.navigate('Drawers');
+                    this.props.navigation.navigate('Drawers', {
+                        screen: "Home",
+                        params: {user: auth().currentUser},
+
+                    });
                 })
                 .catch(error => {
-                    if(error.code === 'auth/wrong-password'
+                    if (error.code === 'auth/wrong-password'
                         || error.code === 'auth/invalid-email'
                         || "auth/user-not-found") {
                         showMessage({
                             message: "Invalid email and/or password! 😬",
                             type: "danger",
                         });
-                    }
-
-                    else {
+                    } else {
                         console.log("An error with auth: " + error);
                     }
                 });
 
+        }
+
+        catch (e) {
+            console.error("Unable to connect to Firebase!")
+        }
     }
 
 

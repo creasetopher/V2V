@@ -23,6 +23,7 @@ export default class PlayerComponent extends React.Component {
 
 
   state = {
+    user: null,
     trackTitles: null,
     playbackState: null,
     currentTrack: null,
@@ -33,6 +34,10 @@ export default class PlayerComponent extends React.Component {
     super(props);
     this.togglePlayback = this.togglePlayback.bind(this);
 
+
+    console.log("props from player")
+    console.log(props)
+
     this.listener =  this.props.navigation.addListener('focus', () => {
       playerService.getTracksFromLibrary()
           .then( (tracks) => {
@@ -40,13 +45,13 @@ export default class PlayerComponent extends React.Component {
                 {trackTitles: tracks}
             )
           })
-
     })
+
+
 
   }
 
   playNow(fileObj) {
-
 
     //dont reset because this clears the queue -- after track plays,
     // queue is empty, nothing plays next
@@ -106,7 +111,8 @@ export default class PlayerComponent extends React.Component {
     });
 
     this.getPlaybackState().then(playbackState => this.setState(
-        {playbackState: playbackState}
+        {playbackState: playbackState,
+              user: this.props.route.params.user}, () => console.log(this.state)
     ));
 
 
@@ -131,6 +137,7 @@ export default class PlayerComponent extends React.Component {
 
       this.setState({playbackState: playbackState.state})
     });
+
 
   }
 
