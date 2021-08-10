@@ -1,4 +1,4 @@
-<h1>V2V Audio Player and Downloader<h1>
+<h1>V2V Audio Player and Downloader</h1>
 
 
 V2V is a audio player and downloader for mobile built with React Native.
